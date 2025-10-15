@@ -1,4 +1,4 @@
--- Deine Custom UI Library - Clean Version
+-- Deine Custom UI Library - CoreGui Injection
 local CustomUILib = {}
 
 -- Drag Funktion
@@ -38,7 +38,7 @@ function CustomUILib:CreateWindow(config)
     local Window = {}
     Window.Tabs = {}
     
-    -- Create ScreenGui
+    -- Create ScreenGui direkt in CoreGui
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "CustomUILib"
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -74,10 +74,10 @@ function CustomUILib:CreateWindow(config)
     TopBarCorner.CornerRadius = UDim.new(0, 8)
     TopBarCorner.Parent = TopBar
     
-    -- Title
+    -- Title (OHNE Version)
     local Title = Instance.new("TextLabel")
     Title.Name = "Title"
-    Title.Size = UDim2.new(0, 200, 1, 0)
+    Title.Size = UDim2.new(1, -50, 1, 0)
     Title.Position = UDim2.new(0, 15, 0, 0)
     Title.BackgroundTransparency = 1
     Title.Text = config.Name or "Custom UI"
@@ -86,19 +86,6 @@ function CustomUILib:CreateWindow(config)
     Title.Font = Enum.Font.GothamSemibold
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.Parent = TopBar
-    
-    -- Version
-    local Version = Instance.new("TextLabel")
-    Version.Name = "Version"
-    Version.Size = UDim2.new(0, 60, 1, 0)
-    Version.Position = UDim2.new(1, -75, 0, 0)
-    Version.BackgroundTransparency = 1
-    Version.Text = "v1.0.0"
-    Version.TextColor3 = Color3.fromRGB(150, 150, 150)
-    Version.TextSize = 12
-    Version.Font = Enum.Font.Gotham
-    Version.TextXAlignment = Enum.TextXAlignment.Right
-    Version.Parent = TopBar
     
     -- Close Button
     local CloseButton = Instance.new("TextButton")
@@ -151,14 +138,14 @@ function CustomUILib:CreateWindow(config)
     PageLabel.Size = UDim2.new(1, 0, 0, 20)
     PageLabel.Position = UDim2.new(0, 0, 0, 35)
     PageLabel.BackgroundTransparency = 1
-    PageLabel.Text = "| Page 1"
+    PageLabel.Text = "Page 1"
     PageLabel.TextColor3 = Color3.fromRGB(100, 100, 100)
     PageLabel.TextSize = 11
     PageLabel.Font = Enum.Font.Gotham
     PageLabel.TextXAlignment = Enum.TextXAlignment.Left
     PageLabel.Parent = LeftSidebar
     
-    -- Search Box
+    -- Search Box (FIXED)
     local SearchBox = Instance.new("TextBox")
     SearchBox.Name = "SearchBox"
     SearchBox.Size = UDim2.new(1, -20, 0, 30)
@@ -166,10 +153,12 @@ function CustomUILib:CreateWindow(config)
     SearchBox.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
     SearchBox.BorderSizePixel = 0
     SearchBox.PlaceholderText = "Search Here"
+    SearchBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 120)
     SearchBox.Text = ""
     SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
     SearchBox.TextSize = 12
     SearchBox.Font = Enum.Font.Gotham
+    SearchBox.ClearTextOnFocus = false
     SearchBox.Parent = LeftSidebar
     
     local SearchCorner = Instance.new("UICorner")
@@ -196,6 +185,7 @@ function CustomUILib:CreateWindow(config)
     ContentScroller.BackgroundTransparency = 1
     ContentScroller.ScrollBarThickness = 3
     ContentScroller.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 60)
+    ContentScroller.AutomaticCanvasSize = Enum.AutomaticSize.Y
     ContentScroller.Parent = RightContent
     
     local ContentListLayout = Instance.new("UIListLayout")
@@ -223,6 +213,31 @@ function CustomUILib:CreateWindow(config)
         CloseButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     end)
     
+    -- Search Functionality
+    local function filterElements(searchText)
+        searchText = string.lower(searchText)
+        
+        for _, element in pairs(ContentScroller:GetChildren()) do
+            if element:IsA("Frame") then
+                local elementName = ""
+                local label = element:FindFirstChild("ButtonLabel") or element:FindFirstChild("ToggleLabel") or element:FindFirstChild("SliderLabel")
+                if label then
+                    elementName = string.lower(label.Text)
+                end
+                
+                if searchText == "" or string.find(elementName, searchText) then
+                    element.Visible = true
+                else
+                    element.Visible = false
+                end
+            end
+        end
+    end
+    
+    SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+        filterElements(SearchBox.Text)
+    end)
+    
     -- Make Tab Funktion
     function Window:MakeTab(tabConfig)
         local Tab = {}
@@ -236,7 +251,7 @@ function CustomUILib:CreateWindow(config)
             
             local SectionFrame = Instance.new("Frame")
             SectionFrame.Name = "Section_" .. sectionConfig.Name
-            SectionFrame.Size = UDim2.new(1, -30, 0, 30)
+            SectionFrame.Size = UDim2.new(1, -30, 0, 25)
             SectionFrame.BackgroundTransparency = 1
             SectionFrame.Parent = TabContent
             
@@ -320,104 +335,11 @@ function CustomUILib:CreateWindow(config)
             return ButtonFrame
         end
         
-        -- Add Toggle Funktion
-        function Tab:AddToggle(toggleConfig)
-            local ToggleFrame = Instance.new("Frame")
-            ToggleFrame.Name = "Toggle_" .. toggleConfig.Name
-            ToggleFrame.Size = UDim2.new(1, -30, 0, 40)
-            ToggleFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-            ToggleFrame.Parent = TabContent
-            
-            local ToggleCorner = Instance.new("UICorner")
-            ToggleCorner.CornerRadius = UDim.new(0, 6)
-            ToggleCorner.Parent = ToggleFrame
-            
-            local ToggleStroke = Instance.new("UIStroke")
-            ToggleStroke.Color = Color3.fromRGB(50, 50, 50)
-            ToggleStroke.Thickness = 1
-            ToggleStroke.Parent = ToggleFrame
-            
-            local ToggleLabel = Instance.new("TextLabel")
-            ToggleLabel.Name = "ToggleLabel"
-            ToggleLabel.Size = UDim2.new(0, 200, 0, 20)
-            ToggleLabel.Position = UDim2.new(0, 10, 0, 5)
-            ToggleLabel.BackgroundTransparency = 1
-            ToggleLabel.Text = toggleConfig.Name
-            ToggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ToggleLabel.TextSize = 14
-            ToggleLabel.Font = Enum.Font.GothamSemibold
-            ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
-            ToggleLabel.Parent = ToggleFrame
-            
-            local DescLabel = Instance.new("TextLabel")
-            DescLabel.Name = "DescLabel"
-            DescLabel.Size = UDim2.new(1, -10, 0, 15)
-            DescLabel.Position = UDim2.new(0, 10, 0, 22)
-            DescLabel.BackgroundTransparency = 1
-            DescLabel.Text = toggleConfig.Description or "Description"
-            DescLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
-            DescLabel.TextSize = 11
-            DescLabel.Font = Enum.Font.Gotham
-            DescLabel.TextXAlignment = Enum.TextXAlignment.Left
-            DescLabel.Parent = ToggleFrame
-            
-            -- Toggle Switch
-            local ToggleSwitch = Instance.new("Frame")
-            ToggleSwitch.Name = "ToggleSwitch"
-            ToggleSwitch.Size = UDim2.new(0, 40, 0, 20)
-            ToggleSwitch.Position = UDim2.new(1, -50, 0, 10)
-            ToggleSwitch.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-            ToggleSwitch.Parent = ToggleFrame
-            
-            local SwitchCorner = Instance.new("UICorner")
-            SwitchCorner.CornerRadius = UDim.new(1, 0)
-            SwitchCorner.Parent = ToggleSwitch
-            
-            local ToggleButton = Instance.new("TextButton")
-            ToggleButton.Name = "ToggleButton"
-            ToggleButton.Size = UDim2.new(0, 16, 0, 16)
-            ToggleButton.Position = UDim2.new(0, 2, 0, 2)
-            ToggleButton.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
-            ToggleButton.Text = ""
-            ToggleButton.Parent = ToggleSwitch
-            
-            local ButtonCorner = Instance.new("UICorner")
-            ButtonCorner.CornerRadius = UDim.new(1, 0)
-            ButtonCorner.Parent = ToggleButton
-            
-            local isToggled = toggleConfig.Default or false
-            
-            local function updateToggle()
-                if isToggled then
-                    ToggleButton.Position = UDim2.new(1, -18, 0, 2)
-                    ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-                    ToggleSwitch.BackgroundColor3 = Color3.fromRGB(0, 85, 127)
-                else
-                    ToggleButton.Position = UDim2.new(0, 2, 0, 2)
-                    ToggleButton.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
-                    ToggleSwitch.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-                end
-                
-                if toggleConfig.Callback then
-                    toggleConfig.Callback(isToggled)
-                end
-            end
-            
-            ToggleButton.MouseButton1Click:Connect(function()
-                isToggled = not isToggled
-                updateToggle()
-            end)
-            
-            updateToggle()
-            
-            return ToggleFrame
-        end
-        
-        -- Add Slider Funktion - FIXED
+        -- Add Slider Funktion - COMPLETELY FIXED
         function Tab:AddSlider(sliderConfig)
             local SliderFrame = Instance.new("Frame")
             SliderFrame.Name = "Slider_" .. sliderConfig.Name
-            SliderFrame.Size = UDim2.new(1, -30, 0, 60)
+            SliderFrame.Size = UDim2.new(1, -30, 0, 50)
             SliderFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
             SliderFrame.Parent = TabContent
             
@@ -432,7 +354,7 @@ function CustomUILib:CreateWindow(config)
             
             local SliderLabel = Instance.new("TextLabel")
             SliderLabel.Name = "SliderLabel"
-            SliderLabel.Size = UDim2.new(0, 200, 0, 20)
+            SliderLabel.Size = UDim2.new(0.6, 0, 0, 20)
             SliderLabel.Position = UDim2.new(0, 10, 0, 5)
             SliderLabel.BackgroundTransparency = 1
             SliderLabel.Text = sliderConfig.Name
@@ -444,10 +366,10 @@ function CustomUILib:CreateWindow(config)
             
             local ValueLabel = Instance.new("TextLabel")
             ValueLabel.Name = "ValueLabel"
-            ValueLabel.Size = UDim2.new(0, 60, 0, 20)
-            ValueLabel.Position = UDim2.new(1, -70, 0, 5)
+            ValueLabel.Size = UDim2.new(0.3, 0, 0, 20)
+            ValueLabel.Position = UDim2.new(0.7, 0, 0, 5)
             ValueLabel.BackgroundTransparency = 1
-            ValueLabel.Text = tostring(sliderConfig.Default or sliderConfig.Min or 0)
+            ValueLabel.Text = tostring(sliderConfig.Default or sliderConfig.Min or 0) .. (sliderConfig.ValueName or "")
             ValueLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
             ValueLabel.TextSize = 12
             ValueLabel.Font = Enum.Font.Gotham
@@ -458,7 +380,7 @@ function CustomUILib:CreateWindow(config)
             local SliderTrack = Instance.new("Frame")
             SliderTrack.Name = "SliderTrack"
             SliderTrack.Size = UDim2.new(1, -20, 0, 4)
-            SliderTrack.Position = UDim2.new(0, 10, 0, 35)
+            SliderTrack.Position = UDim2.new(0, 10, 0, 30)
             SliderTrack.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             SliderTrack.Parent = SliderFrame
             
@@ -495,29 +417,28 @@ function CustomUILib:CreateWindow(config)
             local min = sliderConfig.Min or 0
             local max = sliderConfig.Max or 100
             local increment = sliderConfig.Increment or 1
+            local currentValue = sliderConfig.Default or min
             
             local function updateSlider(value)
-                value = math.clamp(value, min, max)
-                local percentage = (value - min) / (max - min)
+                currentValue = math.clamp(value, min, max)
+                local percentage = (currentValue - min) / (max - min)
                 
                 SliderFill.Size = UDim2.new(percentage, 0, 1, 0)
                 SliderButton.Position = UDim2.new(percentage, -8, 0.5, -8)
-                ValueLabel.Text = tostring(value) .. (sliderConfig.ValueName or "")
+                ValueLabel.Text = tostring(currentValue) .. (sliderConfig.ValueName or "")
                 
                 if sliderConfig.Callback then
-                    sliderConfig.Callback(value)
+                    sliderConfig.Callback(currentValue)
                 end
             end
             
             -- Initial Value
-            updateSlider(sliderConfig.Default or min)
+            updateSlider(currentValue)
             
             -- Drag Functionality
             local dragging = false
             
             local function updateFromMouse()
-                if not dragging then return end
-                
                 local mouse = game:GetService("Players").LocalPlayer:GetMouse()
                 local trackAbsolutePos = SliderTrack.AbsolutePosition.X
                 local trackAbsoluteSize = SliderTrack.AbsoluteSize.X
@@ -533,6 +454,11 @@ function CustomUILib:CreateWindow(config)
                 dragging = true
             end)
             
+            SliderTrack.MouseButton1Down:Connect(function()
+                dragging = true
+                updateFromMouse()
+            end)
+            
             game:GetService("UserInputService").InputEnded:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
                     dragging = false
@@ -540,15 +466,9 @@ function CustomUILib:CreateWindow(config)
             end)
             
             game:GetService("UserInputService").InputChanged:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseMovement then
+                if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
                     updateFromMouse()
                 end
-            end)
-            
-            -- Click on track to set value
-            SliderTrack.MouseButton1Down:Connect(function()
-                dragging = true
-                updateFromMouse()
             end)
             
             return SliderFrame
