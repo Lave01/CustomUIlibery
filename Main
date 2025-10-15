@@ -1,0 +1,299 @@
+-- Deine Custom UI Library
+local CustomUILib = {}
+
+-- Hauptfunktionen
+function CustomUILib:CreateWindow(config)
+    local Window = {}
+    Window.Tabs = {}
+    
+    -- Create ScreenGui
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "CustomUILib"
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.Parent = game:GetService("CoreGui")
+    
+    -- Main Frame
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Size = UDim2.new(0, 500, 0, 400)
+    MainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Parent = ScreenGui
+    
+    -- Corner
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 8)
+    Corner.Parent = MainFrame
+    
+    -- Top Bar
+    local TopBar = Instance.new("Frame")
+    TopBar.Name = "TopBar"
+    TopBar.Size = UDim2.new(1, 0, 0, 40)
+    TopBar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    TopBar.BorderSizePixel = 0
+    TopBar.Parent = MainFrame
+    
+    local TopBarCorner = Instance.new("UICorner")
+    TopBarCorner.CornerRadius = UDim.new(0, 8)
+    TopBarCorner.Parent = TopBar
+    
+    -- Title
+    local Title = Instance.new("TextLabel")
+    Title.Name = "Title"
+    Title.Size = UDim2.new(0, 200, 1, 0)
+    Title.Position = UDim2.new(0, 10, 0, 0)
+    Title.BackgroundTransparency = 1
+    Title.Text = config.Name or "Custom UI"
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextSize = 18
+    Title.Font = Enum.Font.GothamBold
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = TopBar
+    
+    -- Close Button
+    local CloseButton = Instance.new("TextButton")
+    CloseButton.Name = "CloseButton"
+    CloseButton.Size = UDim2.new(0, 30, 0, 30)
+    CloseButton.Position = UDim2.new(1, -40, 0, 5)
+    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+    CloseButton.Text = "X"
+    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.TextSize = 14
+    CloseButton.Font = Enum.Font.GothamBold
+    CloseButton.Parent = TopBar
+    
+    local CloseCorner = Instance.new("UICorner")
+    CloseCorner.CornerRadius = UDim.new(0, 4)
+    CloseCorner.Parent = CloseButton
+    
+    -- Tabs Container
+    local TabsContainer = Instance.new("Frame")
+    TabsContainer.Name = "TabsContainer"
+    TabsContainer.Size = UDim2.new(0, 120, 1, -40)
+    TabsContainer.Position = UDim2.new(0, 0, 0, 40)
+    TabsContainer.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    TabsContainer.BorderSizePixel = 0
+    TabsContainer.Parent = MainFrame
+    
+    -- Content Container
+    local ContentContainer = Instance.new("Frame")
+    ContentContainer.Name = "ContentContainer"
+    ContentContainer.Size = UDim2.new(1, -120, 1, -40)
+    ContentContainer.Position = UDim2.new(0, 120, 0, 40)
+    ContentContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    ContentContainer.BorderSizePixel = 0
+    ContentContainer.Parent = MainFrame
+    
+    -- Close Button Funktion
+    CloseButton.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+    end)
+    
+    -- Make Tab Funktion
+    function Window:MakeTab(tabConfig)
+        local Tab = {}
+        
+        -- Tab Button
+        local TabButton = Instance.new("TextButton")
+        TabButton.Name = "TabButton_" .. tabConfig.Name
+        TabButton.Size = UDim2.new(1, -10, 0, 40)
+        TabButton.Position = UDim2.new(0, 5, 0, #Window.Tabs * 45 + 5)
+        TabButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        TabButton.Text = tabConfig.Name
+        TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TabButton.TextSize = 14
+        TabButton.Font = Enum.Font.Gotham
+        TabButton.Parent = TabsContainer
+        
+        local TabButtonCorner = Instance.new("UICorner")
+        TabButtonCorner.CornerRadius = UDim.new(0, 6)
+        TabButtonCorner.Parent = TabButton
+        
+        -- Tab Content
+        local TabContent = Instance.new("ScrollingFrame")
+        TabContent.Name = "TabContent_" .. tabConfig.Name
+        TabContent.Size = UDim2.new(1, 0, 1, 0)
+        TabContent.Position = UDim2.new(0, 0, 0, 0)
+        TabContent.BackgroundTransparency = 1
+        TabContent.ScrollBarThickness = 3
+        TabContent.Visible = (#Window.Tabs == 0) -- Erster Tab ist sichtbar
+        TabContent.Parent = ContentContainer
+        
+        local UIListLayout = Instance.new("UIListLayout")
+        UIListLayout.Padding = UDim.new(0, 10)
+        UIListLayout.Parent = TabContent
+        
+        -- Tab Button Click
+        TabButton.MouseButton1Click:Connect(function()
+            for _, content in pairs(ContentContainer:GetChildren()) do
+                if content:IsA("ScrollingFrame") then
+                    content.Visible = false
+                end
+            end
+            TabContent.Visible = true
+        end)
+        
+        -- Add Section Funktion
+        function Tab:AddSection(sectionConfig)
+            local Section = {}
+            
+            local SectionFrame = Instance.new("Frame")
+            SectionFrame.Name = "Section_" .. sectionConfig.Name
+            SectionFrame.Size = UDim2.new(1, -20, 0, 30)
+            SectionFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            SectionFrame.Parent = TabContent
+            
+            local SectionCorner = Instance.new("UICorner")
+            SectionCorner.CornerRadius = UDim.new(0, 6)
+            SectionCorner.Parent = SectionFrame
+            
+            local SectionLabel = Instance.new("TextLabel")
+            SectionLabel.Name = "SectionLabel"
+            SectionLabel.Size = UDim2.new(1, 0, 1, 0)
+            SectionLabel.BackgroundTransparency = 1
+            SectionLabel.Text = sectionConfig.Name
+            SectionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            SectionLabel.TextSize = 14
+            SectionLabel.Font = Enum.Font.GothamBold
+            SectionLabel.Parent = SectionFrame
+            
+            return Section
+        end
+        
+        -- Add Button Funktion
+        function Tab:AddButton(buttonConfig)
+            local Button = Instance.new("TextButton")
+            Button.Name = "Button_" .. buttonConfig.Name
+            Button.Size = UDim2.new(1, -20, 0, 40)
+            Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            Button.Text = buttonConfig.Name
+            Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Button.TextSize = 14
+            Button.Font = Enum.Font.Gotham
+            Button.Parent = TabContent
+            
+            local ButtonCorner = Instance.new("UICorner")
+            ButtonCorner.CornerRadius = UDim.new(0, 6)
+            ButtonCorner.Parent = Button
+            
+            Button.MouseButton1Click:Connect(function()
+                if buttonConfig.Callback then
+                    buttonConfig.Callback()
+                end
+            end)
+            
+            return Button
+        end
+        
+        -- Add Slider Funktion
+        function Tab:AddSlider(sliderConfig)
+            local SliderFrame = Instance.new("Frame")
+            SliderFrame.Name = "Slider_" .. sliderConfig.Name
+            SliderFrame.Size = UDim2.new(1, -20, 0, 60)
+            SliderFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            SliderFrame.Parent = TabContent
+            
+            local SliderCorner = Instance.new("UICorner")
+            SliderCorner.CornerRadius = UDim.new(0, 6)
+            SliderCorner.Parent = SliderFrame
+            
+            local SliderLabel = Instance.new("TextLabel")
+            SliderLabel.Name = "SliderLabel"
+            SliderLabel.Size = UDim2.new(1, 0, 0, 20)
+            SliderLabel.Position = UDim2.new(0, 10, 0, 5)
+            SliderLabel.BackgroundTransparency = 1
+            SliderLabel.Text = sliderConfig.Name .. ": " .. sliderConfig.Default
+            SliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            SliderLabel.TextSize = 14
+            SliderLabel.Font = Enum.Font.Gotham
+            SliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+            SliderLabel.Parent = SliderFrame
+            
+            local SliderTrack = Instance.new("Frame")
+            SliderTrack.Name = "SliderTrack"
+            SliderTrack.Size = UDim2.new(1, -20, 0, 4)
+            SliderTrack.Position = UDim2.new(0, 10, 0, 35)
+            SliderTrack.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            SliderTrack.Parent = SliderFrame
+            
+            local SliderTrackCorner = Instance.new("UICorner")
+            SliderTrackCorner.CornerRadius = UDim.new(1, 0)
+            SliderTrackCorner.Parent = SliderTrack
+            
+            local SliderFill = Instance.new("Frame")
+            SliderFill.Name = "SliderFill"
+            SliderFill.Size = UDim2.new(0, 0, 1, 0)
+            SliderFill.BackgroundColor3 = sliderConfig.Color or Color3.fromRGB(255, 255, 255)
+            SliderFill.Parent = SliderTrack
+            
+            local SliderFillCorner = Instance.new("UICorner")
+            SliderFillCorner.CornerRadius = UDim.new(1, 0)
+            SliderFillCorner.Parent = SliderFill
+            
+            local SliderButton = Instance.new("TextButton")
+            SliderButton.Name = "SliderButton"
+            SliderButton.Size = UDim2.new(0, 20, 0, 20)
+            SliderButton.Position = UDim2.new(0, -10, 0.5, -10)
+            SliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            SliderButton.Text = ""
+            SliderButton.Parent = SliderFill
+            
+            local SliderButtonCorner = Instance.new("UICorner")
+            SliderButtonCorner.CornerRadius = UDim.new(1, 0)
+            SliderButtonCorner.Parent = SliderButton
+            
+            -- Slider Logic
+            local function updateSlider(value)
+                local min = sliderConfig.Min or 0
+                local max = sliderConfig.Max or 100
+                local percentage = (value - min) / (max - min)
+                
+                SliderFill.Size = UDim2.new(percentage, 0, 1, 0)
+                SliderButton.Position = UDim2.new(percentage, -10, 0.5, -10)
+                SliderLabel.Text = sliderConfig.Name .. ": " .. value .. (sliderConfig.ValueName or "")
+                
+                if sliderConfig.Callback then
+                    sliderConfig.Callback(value)
+                end
+            end
+            
+            -- Initial Value
+            updateSlider(sliderConfig.Default or sliderConfig.Min or 0)
+            
+            -- Drag Functionality
+            local dragging = false
+            
+            SliderButton.MouseButton1Down:Connect(function()
+                dragging = true
+            end)
+            
+            game:GetService("UserInputService").InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = false
+                end
+            end)
+            
+            game:GetService("UserInputService").InputChanged:Connect(function(input)
+                if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                    local relativeX = math.clamp((input.Position.X - SliderTrack.AbsolutePosition.X) / SliderTrack.AbsoluteSize.X, 0, 1)
+                    local value = math.floor(sliderConfig.Min + (sliderConfig.Max - sliderConfig.Min) * relativeX)
+                    local increment = sliderConfig.Increment or 1
+                    value = math.floor(value / increment) * increment
+                    value = math.clamp(value, sliderConfig.Min, sliderConfig.Max)
+                    updateSlider(value)
+                end
+            end)
+            
+            return SliderFrame
+        end
+        
+        table.insert(Window.Tabs, Tab)
+        return Tab
+    end
+    
+    return Window
+end
+
+-- Return the library
+return CustomUILib
